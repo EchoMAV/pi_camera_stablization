@@ -406,8 +406,7 @@ int main(int argc, char **argv)
         //std::string p_line2 = "! video/x-raw, format=RGBx, width=640, height=480, framerate=200/1 "; // for PiCam V2
         std::string p_line2 = "! capsfilter caps=\"video/x-raw,format=I420,width=1280,height=720,framerate=30/1\" ";
         // string p_line2 = "! video/x-raw, format=RGBx, width=1536, height=864, framerate=120/1 ";  // for PiCam V3
-        //std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
-        std::string p_line3 = "";
+        std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
         std::string p_line4 = "! appsink";
         std::string inputPipeline = p_line1 + p_line2 + p_line3 + p_line4;
         #endif
@@ -601,7 +600,7 @@ int main(int argc, char **argv)
 
             cv::VideoWriter writer{};
             //std::string outputPipeline = "appsrc ! videoconvert ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
-            std::string outputPipeline = "appsrc ! videoconvert ! x264enc ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
+            std::string outputPipeline = "appsrc ! videoconvert ! capsfilter caps=\"video/x-raw,format=I420,width=1280,height=720,framerate=30/1\" ! x264enc ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
 
             std::cout<<"outputPipeline = "<<outputPipeline<<std::endl;
             writer.open(outputPipeline, cv::CAP_GSTREAMER, 0, fps, frameSize, true);
