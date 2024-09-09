@@ -397,8 +397,11 @@ int main(int argc, char **argv)
         std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
         std::string p_line4 = "! appsink";
         std::string pipeline = p_line1 + p_line2 + p_line3 + p_line4;
-        #else
-        std::string p_line1 = "libcamerasrc camera-name=/base/axi/pcie@120000/rp1/i2c@88000/imx219@10 "; // for PiCam V2
+        #elif 1
+
+
+        //std::string p_line1 = "libcamerasrc camera-name=/base/axi/pcie@120000/rp1/i2c@88000/imx219@10 "; // for PiCam V2
+        std::string p_line1 = "libcamerasrc ";
         // string p_line1 = "libcamerasrc camera-name=/base/axi/pcie@120000/rp1/i2c@80000/imx708@1a ";   // for PiCam V3
         std::string p_line2 = "! video/x-raw, format=RGBx, width=640, height=480, framerate=200/1 "; // for PiCam V2
         // string p_line2 = "! video/x-raw, format=RGBx, width=1536, height=864, framerate=120/1 ";  // for PiCam V3
