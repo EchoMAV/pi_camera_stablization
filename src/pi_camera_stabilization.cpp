@@ -412,16 +412,14 @@ int main(int argc, char **argv)
         #endif
         std::cout<<"inputPipeline = "<<inputPipeline<<std::endl;
         cv::Ptr<VideoCaptureFrameSrc> frameSource = cv::makePtr<VideoCaptureFrameSrc>(inputPipeline);
-        cv::VideoCapture const &videoCap = frameSource->getVideoCapture();
+        cv::VideoCapture &videoCap = frameSource->getVideoCapture();
         //cv::Ptr<VideoCaptureFrameSrc> frameSourceOriginal = cv::makePtr<VideoCaptureFrameSrc>(inputPipeline);
         //cv::VideoCapture &videoCapOriginal = frameSourceOriginal->getVideoCapture();
         if (videoCap.isOpened() 
         //&& videoCapOriginal.isOpened()
         )
         {
-
-            cv::videostab::StabilizerBase *stabilizer = nullptr;
-            double fps = 0;
+             double fps = 0;
             if (cmd.get<std::string>("fps") == "auto")
             {
                 fps = videoCap.get(cv::CAP_PROP_FPS);
@@ -434,6 +432,10 @@ int main(int argc, char **argv)
             {
                 fps = 30;
             }
+             cv::Size frameSize((int)videoCap.get(cv::CAP_PROP_FRAME_WIDTH), (int)videoCap.get(cv::CAP_PROP_FRAME_HEIGHT));
+            #if 0
+            cv::videostab::StabilizerBase *stabilizer = nullptr;
+           
 
             cv::Ptr<IMotionEstimatorBuilder> motionEstBuilder;
             if (cmd.get<std::string>("lin-prog-motion-est") == "yes")
@@ -451,7 +453,7 @@ int main(int argc, char **argv)
             bool isTwoPass =
                 cmd.get<std::string>("est-trim") == "yes" || cmd.get<std::string>("wobble-suppress") == "yes" || cmd.get<std::string>("lin-prog-stab") == "yes";
 
-            cv::Size frameSize((int)videoCap.get(cv::CAP_PROP_FRAME_WIDTH), (int)videoCap.get(cv::CAP_PROP_FRAME_HEIGHT));
+           
 
             if (isTwoPass)
             {
@@ -604,7 +606,6 @@ int main(int argc, char **argv)
 
             std::cout<<"outputPipeline = "<<outputPipeline<<std::endl;
             writer.open(outputPipeline, cv::CAP_GSTREAMER, 0, fps, frameSize, true);
-            cv::Mat original;
             for (;;)
             {
                 
@@ -619,6 +620,33 @@ int main(int argc, char **argv)
                 //cv::waitKey(30);
                 writer << stabilizedFrame;
             }
+            #else
+            std::string host=cmd.get<std::string>("host");
+            std::string port=cmd.get<std::string>("port");
+
+            cv::VideoWriter writer{};
+            //std::string outputPipeline = "appsrc ! videoconvert ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
+            std::string outputPipeline = "appsrc ! videoconvert ! capsfilter caps=\"video/x-raw,format=I420,width=1280,height=720,framerate=30/1\" ! x264enc ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
+
+            std::cout<<"outputPipeline = "<<outputPipeline<<std::endl;
+            writer.open(outputPipeline, cv::CAP_GSTREAMER, 0, fps, frameSize, true);
+            cv::Mat frame;
+            for (;;)
+            {
+                if(!videoCap.read(frame))
+                {
+                    break;
+                }
+
+                //cv::Mat stabilizedFrame = stabilizedFrames->nextFrame();
+                
+                //videoCapOriginal.read(original);
+                //cv::imshow("stabilized", stabilizedFrame);
+                //cv::imshow("original", original);
+                //cv::waitKey(30);
+                writer << frame;
+            }
+            #endif
         }
     }
     catch (const std::exception &e)
