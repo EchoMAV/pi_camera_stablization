@@ -389,14 +389,14 @@ int main(int argc, char **argv)
             std::cout << std::endl;
         }
         #if 0
-        std::string pipeline = "filesrc location=/home/tlyons/Downloads/1000002968.mp4 ! decodebin ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
+        std::string inputPipeline = "filesrc location=/home/tlyons/Downloads/1000002968.mp4 ! decodebin ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
 
         #elif 0
         std::string p_line1 = "videotestsrc "; // for PiCam V2
         std::string p_line2 = "! video/x-raw, format=RGBx, width=640, height=480, framerate=200/1 "; // for PiCam V2
         std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
         std::string p_line4 = "! appsink";
-        std::string pipeline = p_line1 + p_line2 + p_line3 + p_line4;
+        std::string inputPipeline = p_line1 + p_line2 + p_line3 + p_line4;
         #elif 1
 
 
@@ -408,14 +408,16 @@ int main(int argc, char **argv)
         // string p_line2 = "! video/x-raw, format=RGBx, width=1536, height=864, framerate=120/1 ";  // for PiCam V3
         std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
         std::string p_line4 = "! appsink";
-        std::string pipeline = p_line1 + p_line2 + p_line3 + p_line4;
+        std::string inputPipeline = p_line1 + p_line2 + p_line3 + p_line4;
         #endif
-
-        cv::Ptr<VideoCaptureFrameSrc> frameSource = cv::makePtr<VideoCaptureFrameSrc>(pipeline);
+        std::cout<<"inputPipeline = "<<inputPipeline<<std::endl;
+        cv::Ptr<VideoCaptureFrameSrc> frameSource = cv::makePtr<VideoCaptureFrameSrc>(inputPipeline);
         cv::VideoCapture const &videoCap = frameSource->getVideoCapture();
-        cv::Ptr<VideoCaptureFrameSrc> frameSourceOriginal = cv::makePtr<VideoCaptureFrameSrc>(pipeline);
-        cv::VideoCapture &videoCapOriginal = frameSourceOriginal->getVideoCapture();
-        if (videoCap.isOpened() && videoCapOriginal.isOpened())
+        //cv::Ptr<VideoCaptureFrameSrc> frameSourceOriginal = cv::makePtr<VideoCaptureFrameSrc>(inputPipeline);
+        //cv::VideoCapture &videoCapOriginal = frameSourceOriginal->getVideoCapture();
+        if (videoCap.isOpened() 
+        //&& videoCapOriginal.isOpened()
+        )
         {
 
             cv::videostab::StabilizerBase *stabilizer = nullptr;
@@ -432,8 +434,6 @@ int main(int argc, char **argv)
             {
                 fps = 30;
             }
-
-            auto const fourcc = (int)videoCap.get(cv::CAP_PROP_FOURCC);
 
             cv::Ptr<IMotionEstimatorBuilder> motionEstBuilder;
             if (cmd.get<std::string>("lin-prog-motion-est") == "yes")
@@ -599,7 +599,9 @@ int main(int argc, char **argv)
             std::string port=cmd.get<std::string>("port");
 
             cv::VideoWriter writer{};
-            writer.open("appsrc ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false", fourcc, fps, frameSize, true);
+            std::string outputPipeline = "appsrc ! video/x-raw, format=BGR ! queue ! ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
+            std::cout<<"outputPipeline = "<<outputPipeline<<std::endl;
+            writer.open(outputPipeline, cv::CAP_GSTREAMER, 0, fps, frameSize, true);
             cv::Mat original;
             for (;;)
             {
@@ -609,7 +611,7 @@ int main(int argc, char **argv)
                 {
                     break;
                 }
-                videoCapOriginal.read(original);
+                //videoCapOriginal.read(original);
                 //cv::imshow("stabilized", stabilizedFrame);
                 //cv::imshow("original", original);
                 //cv::waitKey(30);
