@@ -599,7 +599,7 @@ int main(int argc, char **argv)
             std::string port=cmd.get<std::string>("port");
 
             cv::VideoWriter writer{};
-            std::string outputPipeline = "appsrc ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
+            std::string outputPipeline = "appsrc ! videoconvert ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false";
             std::cout<<"outputPipeline = "<<outputPipeline<<std::endl;
             writer.open(outputPipeline, cv::CAP_GSTREAMER, 0, fps, frameSize, true);
             cv::Mat original;
