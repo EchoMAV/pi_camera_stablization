@@ -403,7 +403,8 @@ int main(int argc, char **argv)
         //std::string p_line1 = "libcamerasrc camera-name=/base/axi/pcie@120000/rp1/i2c@88000/imx219@10 "; // for PiCam V2
         std::string p_line1 = "libcamerasrc ";
         // string p_line1 = "libcamerasrc camera-name=/base/axi/pcie@120000/rp1/i2c@80000/imx708@1a ";   // for PiCam V3
-        std::string p_line2 = "! video/x-raw, format=RGBx, width=640, height=480, framerate=200/1 "; // for PiCam V2
+        //std::string p_line2 = "! video/x-raw, format=RGBx, width=640, height=480, framerate=200/1 "; // for PiCam V2
+        std::string p_line2 = "! capsfilter caps=\"video/x-raw,format=I420,width=1280,height=720,framerate=30/1\" ";
         // string p_line2 = "! video/x-raw, format=RGBx, width=1536, height=864, framerate=120/1 ";  // for PiCam V3
         std::string p_line3 = "! videoconvert ! video/x-raw, format=(string)BGR ";
         std::string p_line4 = "! appsink";
@@ -598,8 +599,8 @@ int main(int argc, char **argv)
             std::string port=cmd.get<std::string>("port");
 
             cv::VideoWriter writer{};
-            writer.open("appsrc ! encodebin2 profile=\"video/x-h264\" ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false", fourcc, fps, frameSize, true);
-              cv::Mat original;
+            writer.open("appsrc ! x264enc tune=zerolatency speed-preset=ultrafast bitrate=4000 ! rtph264pay config-interval=1 pt=96 ! udpsink host=\""+host+"\" port="+port+" sync=false", fourcc, fps, frameSize, true);
+            cv::Mat original;
             for (;;)
             {
                 
